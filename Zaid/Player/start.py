@@ -1,102 +1,186 @@
 import asyncio
-from time import time
-from datetime import datetime
-from config import BOT_USERNAME
-from config import GROUP_SUPPORT, UPDATES_CHANNEL, START_PIC
-from Zaid.filters import command
-from Zaid.command import commandpro
-from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import filters
+from pyrogram.types import Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.errors import MessageNotModified
+from Zaid.main import Test, bot as Client
+from config import START_PIC, UPDATES_CHANNEL, GROUP_SUPPORT
 
 
-START_TIME = datetime.utcnow()
-START_TIME_ISO = START_TIME.replace(microsecond=0).isoformat()
-TIME_DURATION_UNITS = (
-    ('week', 60 * 60 * 24 * 7),
-    ('day', 60 * 60 * 24),
-    ('hour', 60 * 60),
-    ('min', 60),
-    ('sec', 1)
-)
+ALIVE_PIC = START_PIC
+HOME_TEXT = "↯︙ **هلا يبعد عيني .** \n\n **في بوت تشغيل الاغاني المميز الاول في السرعة ↯︙.** \n\n**اضغط على مفتاح الأوامر الاستخدام . ↯︙.**"
+HELP_TEXT = """
+  **- تابع الازرار في الاسفل ↓** 
 
-async def _human_time_duration(seconds):
-    if seconds == 0:
-        return 'inf'
-    parts = []
-    for unit, div in TIME_DURATION_UNITS:
-        amount, seconds = divmod(int(seconds), div)
-        if amount > 0:
-            parts.append('{} {}{}'
-                         .format(amount, unit, "" if amount == 1 else "s"))
-    return ', '.join(parts)
-    
-   
+\u2022 يمديك تشوف كل اوامر البوت عن طريق زر اوامر البوت .
+"""
 
-@Client.on_message(command("start") & filters.private & ~filters.edited)
-async def start_(client: Client, message: Message):
-    await message.reply_photo(
-        photo=f"{START_PIC}",
-        caption=f"""**A Telegram Music Bot Based Mongodb.
- Add Me To Ur Chat For and Help and And Support Click On Buttons  ...
-💞  These Features A.I Based 
-Powered By [ᴢᴀɪᴅ ʙᴏᴛꜱ](t.me/superior_bots) ...
-**""",
-    reply_markup=InlineKeyboardMarkup(
+
+
+USER_TEXT = """
+↯︙ ** - تابع الاوامر في الاسفل ↓ :** 
+
+\u2022↯︙ .شغل - بالرد على ملف صوتي او اسم أغنية
+\u2022↯︙ .تخطي - لتخطي اغنية في التشغيل
+\u2022↯︙ .كافي - لايقاف تشغيل جميع الاغاني
+\u2022↯︙ .اضبط - لضبط صوت حساب المساعد
+\u2022↯︙ .الانتضار - لرؤية قائمة الانتضار التشغيل
+\u2022↯︙ .ابحثلي - لبحث عن فيديو من اليوتيوب
+\u2022↯︙ .بحث - لتحميل اغنية من اليوتيوب
+\u2022↯︙ .كتم - لكتم صوت المساعد 
+\u2022↯︙ .بنك - لإضهار بنك البوت
+\u2022↯︙ .انضم - لدعوة حساب المساعد
+
+. شكراً لقرائتك الاوامر - أتمنى لك يوماً جميلاً ↯︙.
+"""
+
+SPAM_TEXT = """
+↯︙ **طريقة التشغيل ، تابع في الاسفل ↓** 
+
+\u2022 1↯︙ أولا ، أضفني الى مجموعتك
+\u2022 2↯︙ بعد ذالك قم برفعي كمشرف واعطائي صلاحيات مثل باقي البشر.
+\u2022 3↯︙ بعد ذالك اكتب .تحديث بيانات البوت
+\u2022 3↯︙ اضف سيدي ومولاي في مجموعتك او اكتب .انضم لدعوة المساعد
+\u2022 4↯︙ اذ لم تستطيع اضافة المساعد او واجهت مشاكل تحدث مع رئيس الوزراء  .
+"""
+
+
+@Client.on_callback_query()
+async def cb_handler(client: Client, query: CallbackQuery):
+    if query.data=="help":
+        buttons = [
             [
-                [
-                    InlineKeyboardButton(
-                        "➕ ❰ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ❱ ➕", url=f"https://t.me/{BOT_USERNAME}?startgroup=true"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "ʜᴇʟᴘ & ᴄᴏᴍᴍᴀɴᴅꜱ", url=f"https://t.me/SUPERIOR_BOTS/160"
-                    ),
-                    InlineKeyboardButton(
-                        "ꜱᴏᴜʀᴄᴇ ᴄᴏᴅᴇ", url="https://github.com/ITZ-ZAID/Zaid-Vc-Player"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        "📢 ᴜᴘᴅᴀᴛᴇꜱ ᴄʜᴀɴɴᴇʟ", url=f"https://t.me/{UPDATES_CHANNEL}"
-                    ),
-                    InlineKeyboardButton(
-                        "ꜱᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ 🇮🇳", url=f"https://t.me/{GROUP_SUPPORT}"
-                    )
-                ]
-                
-           ]
-        ),
-    )
-    
-    
-@Client.on_message(commandpro(["/start", "/alive"]) & filters.group & ~filters.edited)
+                InlineKeyboardButton("↯︙المطور", url=f"https://t.me/{UPDATES_CHANNEL}"),
+                InlineKeyboardButton("↯︙الأوامر", callback_data="users"),
+            ],
+            [
+                InlineKeyboardButton("↯︙طريقه التشغيل", callback_data="spam"),
+            ],            
+
+            [
+                InlineKeyboardButton("↯︙التالي", callback_data="home"),
+                InlineKeyboardButton("↯︙مسح", callback_data="close"),
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(
+                HELP_TEXT,
+                reply_markup=reply_markup
+            )
+        except MessageNotModified:
+            pass
+
+    elif query.data=="home":
+        get_me = await client.get_me()
+        USERNAME = get_me.username
+        buttons = [
+            [
+                InlineKeyboardButton("↯︙ اެضفني اެݪى مجمۅعتَك ↯︙", url=f'https://t.me/{USERNAME}?startgroup=true'),
+            ],
+            [
+                InlineKeyboardButton("↯︙طريقه التشغيل", callback_data="spam"),
+            ],
+            
+            [
+                InlineKeyboardButton("↯︙الأوامر", callback_data="help"),
+                InlineKeyboardButton("↯︙المطور", url=f"https://t.me/{UPDATES_CHANNEL}")
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(
+                HOME_TEXT.format(query.from_user.first_name, query.from_user.id),
+                reply_markup=reply_markup
+            )
+        except MessageNotModified:
+            pass
+
+    elif query.data=="users":
+        buttons = [
+            [
+                InlineKeyboardButton("↯︙الأوامر", callback_data="help"),
+                InlineKeyboardButton("↯︙مسح", callback_data="close"),
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(
+                USER_TEXT.format(query.from_user.first_name, query.from_user.id),
+                reply_markup=reply_markup
+            )
+        except MessageNotModified:
+            pass
+
+    elif query.data=="admins":
+        buttons = [
+            [
+                InlineKeyboardButton("↯︙التالي", callback_data="help"),
+                InlineKeyboardButton("↯︙مسح", callback_data="close"),
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(ADMIN, reply_markup=reply_markup)
+        except MessageNotModified:
+            pass
+
+    elif query.data=="raid":
+        buttons = [
+            [
+                InlineKeyboardButton("↯︙التالي", callback_data="help"),
+                InlineKeyboardButton("↯︙مسح", callback_data="close"),
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(
+                RAID_TEXT.format(query.from_user.first_name, query.from_user.id),
+                reply_markup=reply_markup
+            )
+        except MessageNotModified:
+            pass
+
+    elif query.data=="spam":
+        buttons = [
+            [
+                InlineKeyboardButton("↯︙طريقه التشغيل", callback_data="help"),
+                InlineKeyboardButton("↯︙مسح", callback_data="close"),
+            ]
+            ]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        try:
+            await query.edit_message_text(
+                SPAM_TEXT.format(query.from_user.first_name, query.from_user.id),
+                reply_markup=reply_markup
+            )
+        except MessageNotModified:
+            pass
+
+    elif query.data=="close":
+        try:
+            await query.message.delete()
+            await query.message.reply_to_message.delete()
+        except:
+            pass
+
+
+@Client.on_message(filters.command(["start"]) & filters.private)
 async def start(client: Client, message: Message):
-    await message.reply_photo(
-        photo=f"https://telegra.ph/file/dd9ca2b2122dd68ffab0e.png",
-        caption=f"""Thanks For Adding Me To Ur Chat, For Any Query U Can Join Our Support Groups 🔥♥️""",
-        reply_markup=InlineKeyboardMarkup(
+    get_me = await client.get_me()
+    USERNAME = get_me.username
+    buttons = [
             [
-                [
-                    InlineKeyboardButton(
-                        "💥 ᴊᴏɪɴ ʜᴇʀᴇ 💞", url=f"https://t.me/{GROUP_SUPPORT}")
-                ]
-            ]
-        ),
-    )
-
-
-@Client.on_message(command(["repo", "source"]) & filters.group & ~filters.edited)
-async def help(client: Client, message: Message):
-    await message.reply_photo(
-        photo=f"https://telegra.ph/file/92688f2c44a35ba673c23.png",
-        caption=f"""Here Is The Source Code Fork And Give Stars ✨""",
-        reply_markup=InlineKeyboardMarkup(
+                InlineKeyboardButton("↯︙ اެضفني اެݪى مجمۅعتَك ↯︙", url=f'https://t.me/{USERNAME}?startgroup=true'),
+            ],
             [
-                [
-                    InlineKeyboardButton(
-                        " ʀᴇᴘᴏ ⚒️", url=f"https://github.com/ITZ-ZAID/Zaid-Vc-Player")
-                ]
+                InlineKeyboardButton("↯︙طريقه التشغيل", callback_data="spam"),
+            ],
+            
+            [
+                InlineKeyboardButton("↯︙الأوامر", callback_data="help"),
+                InlineKeyboardButton("↯︙المطور", url=f"https://t.me/{UPDATES_CHANNEL}")
             ]
-        ),
-    )
+            ]
+    reply_markup = InlineKeyboardMarkup(buttons)
+    await message.reply_photo(photo=f"{ALIVE_PIC}", caption=HOME_TEXT.format(message.from_user.first_name, message.from_user.id), reply_markup=reply_markup)

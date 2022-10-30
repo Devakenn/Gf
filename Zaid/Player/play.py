@@ -1,4 +1,4 @@
-# © TeamRaichu
+# © SUPERIOR_BOTS
 import io
 from os import path
 from typing import Callable
@@ -6,7 +6,7 @@ from asyncio.queues import QueueEmpty
 import os
 import random
 import re
-
+from random import choice
 import aiofiles
 import aiohttp
 from Zaid.converter import convert
@@ -14,20 +14,22 @@ import ffmpeg
 import requests
 from Zaid.fonts import CHAT_TITLE
 from PIL import Image, ImageDraw, ImageFont
-from config import ASSISTANT_NAME, BOT_USERNAME, IMG_1, IMG_2, IMG_5, GROUP_SUPPORT, UPDATES_CHANNEL
+from config import ASSISTANT_NAME, BOT_USERNAME, IMG_1, IMG_2, IMG_5, UPDATES_CHANNEL, GROUP_SUPPORT
 from Zaid.filters import command, other_filters
 from Zaid.queues import QUEUE, add_to_queue
-from Zaid.main import call_py, user
+from Zaid.main import call_py, Test as user
 from Zaid.utils import bash
-from pyrogram import Client
+from Zaid.main import bot as Client
 from pyrogram.errors import UserAlreadyParticipant, UserNotParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from pytgcalls import StreamType
 from pytgcalls.types.input_stream import AudioPiped
 from youtubesearchpython import VideosSearch
-import yt_dlp as youtube_dl
+import yt_dlp
+import yt_dlp
 
-FOREGROUND_IMG = [
+ZAID_IMGS = [
+    "Process/ImageFont/LightGreen.png",
     "Process/ImageFont/Red.png",
     "Process/ImageFont/Black.png",
     "Process/ImageFont/Blue.png",
@@ -36,6 +38,7 @@ FOREGROUND_IMG = [
     "Process/ImageFont/Lightblue.png",
     "Process/ImageFont/Lightred.png",
     "Process/ImageFont/Purple.png",
+    "Process/ImageFont/foreground.png",
 ]
 
 def ytsearch(query: str):
@@ -53,11 +56,10 @@ def ytsearch(query: str):
 
 
 async def ytdl(format: str, link: str):
-    stdout, stderr = await bash(f'youtube-dl -g -f "{format}" {link}')
+    stdout, stderr = await bash(f'yt-dlp --geo-bypass -g -f "[height<=?720][width<=?1280]" {link}')
     if stdout:
         return 1, stdout
     return 0, stderr
-
 
 chat_id = None
 DISABLED_GROUPS = []
@@ -107,7 +109,8 @@ async def generate_cover(thumbnail, title, userid, ctitle):
                 await f.write(await resp.read())
                 await f.close()
     image1 = Image.open(f"thumb{userid}.png")
-    image2 = Image.open("Process/ImageFont/raichux.png")
+    images = choice(ZAID_IMGS)
+    image2 = Image.open(images)
     image3 = changeImageSize(1280, 720, image1)
     image4 = changeImageSize(1280, 720, image2)
     image5 = image3.convert("RGBA")
@@ -118,7 +121,7 @@ async def generate_cover(thumbnail, title, userid, ctitle):
     font = ImageFont.truetype("Process/ImageFont/finalfont.ttf", 60)
     font2 = ImageFont.truetype("Process/ImageFont/finalfont.ttf", 70)     
     draw.text((20, 45), f"{title[:30]}...", fill= "white", stroke_width = 1, stroke_fill="white", font=font2)
-    draw.text((120, 595), f"Playing on: {ctitle[:20]}...", fill="white", stroke_width = 1, stroke_fill="white" ,font=font)
+    draw.text((120, 595), f"PlAYING ON: {ctitle[:20]}...", fill="white", stroke_width = 1, stroke_fill="white" ,font=font)
     img.save(f"final{userid}.png")
     os.remove(f"temp{userid}.png")
     os.remove(f"thumb{userid}.png") 
@@ -128,22 +131,21 @@ async def generate_cover(thumbnail, title, userid, ctitle):
 
 
     
-@Client.on_message(command(["play", f"play@{BOT_USERNAME}"]) & other_filters)
+@Client.on_message(command(["تشغيل", f"ش", f"شغل", f"p", f"play"]) & other_filters)
 async def play(c: Client, m: Message):
     await m.delete()
     replied = m.reply_to_message
     chat_id = m.chat.id
     keyboard = InlineKeyboardMarkup(
                   [[
-                      InlineKeyboardButton("⏹", callback_data="cbstop"),
-                      InlineKeyboardButton("⏸", callback_data="cbpause"),
-                      InlineKeyboardButton('⏭️', callback_data="skip"),
-                      InlineKeyboardButton("▶️", callback_data="cbresume"),
+                      InlineKeyboardButton("⏹️", callback_data="cbstop"),
+                      InlineKeyboardButton("⏸️", callback_data="cbpause"),
+                      InlineKeyboardButton("⏭️", "skip"),
+                      InlineKeyboardButton("🔼", callback_data="cbresume"),
                   ],[
-                      InlineKeyboardButton(text="✨ ɢʀᴏᴜᴘ", url=f"https://t.me/{GROUP_SUPPORT}"),
-                      InlineKeyboardButton(text="📣 ᴄʜᴀɴɴᴇʟ", url=f"https://t.me/{UPDATES_CHANNEL}"),
+                      InlineKeyboardButton(text="🥇 المطور ", url=f"https://t.me/{UPDATES_CHANNEL}"),
                   ],[
-                      InlineKeyboardButton("🗑", callback_data="cls")],
+                      InlineKeyboardButton("مسح.", callback_data="close")],
                   ]
              )
     if m.sender_chat:
@@ -155,28 +157,28 @@ async def play(c: Client, m: Message):
     a = await c.get_chat_member(chat_id, aing.id)
     if a.status != "administrator":
         await m.reply_text(
-            f"💡 To use me, I need to be an **Administrator** with the following **permissions**:\n\n» ❌ __Delete messages__\n» ❌ __Add users__\n» ❌ __Manage video chat__\n\nData is **updated** automatically after you **promote me**"
+            f"❤️‍🔥 لاستخدام البوت, ارفعني كمشرف اولا **في مجموعتك** بعد ذالك اعطني الصلاحيات **التالية**:\n\n» 🤼 __حذف رسائل__\n» 🤼 __اضافة مستخدمين__\n» 🤼 __ادارة دردشة الفيديو__\n\nسيتم تحديث **البيانات تلقائيا**"
         )
         return
     if not a.can_manage_voice_chats:
         await m.reply_text(
-            "missing required permission:" + "\n\n» ❌ __Manage video chat__"
+            "شلون اشغل واني معندي صلاحية :" + "\n\n» ❤️‍🔥 __دردشة الفيديو__"
         )
         return
     if not a.can_delete_messages:
         await m.reply_text(
-            "missing required permission:" + "\n\n» ❌ __Delete messages__"
+            "شلون اشغل واني معندي صلاحية:" + "\n\n» ❤️‍🔥 __حذف رسائل__"
         )
         return
     if not a.can_invite_users:
-        await m.reply_text("missing required permission:" + "\n\n» ❌ __Add users__")
+        await m.reply_text("شلون اشغل واني معندي صلاحية:" + "\n\n» ❤️‍🔥 __اضافة مستخدمين__")
         return
     try:
         ubot = (await user.get_me()).id
         b = await c.get_chat_member(chat_id, ubot)
         if b.status == "kicked":
             await m.reply_text(
-                f"@{ASSISTANT_NAME} **is banned in group** {m.chat.title}\n\n» **unban the userbot first if you want to use this bot.**"
+                f"@{ASSISTANT_NAME} **حساب المساعد محظور من المجموعة** {m.chat.title}\n\n» **جرب الغاء حظر المساعد من الاعدادات واكتب .انضم.**"
             )
             return
     except UserNotParticipant:
@@ -184,7 +186,7 @@ async def play(c: Client, m: Message):
             try:
                 await user.join_chat(m.chat.username)
             except Exception as e:
-                await m.reply_text(f"❌ **userbot failed to join**\n\n**reason**: `{e}`")
+                await m.reply_text(f"❤️‍🔥 **فشل حساب المساعد في الانضمام**\n\n**السبب**: `{e}`")
                 return
         else:
             try:
@@ -200,11 +202,11 @@ async def play(c: Client, m: Message):
                 pass
             except Exception as e:
                 return await m.reply_text(
-                    f"❌ **userbot failed to join**\n\n**reason**: `{e}`"
+                    f"❤️‍🔥 **فشل حساب المساعد في الانضمام **\n\n**السبب**: `{e}`"
                 )
     if replied:
         if replied.audio or replied.voice:
-            suhu = await replied.reply("📥 **downloading audio...**")
+            suhu = await replied.reply("📥 **تحميل الصوت...**")
             dl = await replied.download()
             link = replied.link
             if replied.audio:
@@ -222,7 +224,7 @@ async def play(c: Client, m: Message):
                 await suhu.delete()
                 await m.reply_photo(
                     photo=f"{IMG_1}",
-                    caption=f"💡 **Track added to queue »** `{pos}`\n\n🏷 **Name:** [{songname}]({link}) | `music`\n💭 **Chat:** `{chat_id}`\n🎧 **Request by:** {m.from_user.mention()}",
+                    caption=f"❤️‍🔥 → **أبشر يخوي حشغلها بعد هاذي »** `{pos}`\n\n❤️‍🔥 → **الاسم:** [{songname}]({link}) | `الاغنية`\n❤️‍🔥 → **الدردشة:** `{chat_id}`\n❤️‍🔥 → **طلب الحلو:** {m.from_user.mention()}",
                     reply_markup=keyboard,
                 )
             else:
@@ -239,7 +241,7 @@ async def play(c: Client, m: Message):
                 requester = f"[{m.from_user.first_name}](tg://user?id={m.from_user.id})"
                 await m.reply_photo(
                     photo=f"{IMG_2}",
-                    caption=f"🏷 **Name:** [{songname}]({link})\n💭 **Chat:** `{chat_id}`\n💡 **Status:** `Playing`\n🎧 **Request by:** {requester}\n📹 **Stream type:** `Music`",
+                    caption=f"❤️‍🔥 → **الاسم:** [{songname}]({link})\n❤️‍🔥 → **الدردشة:** `{chat_id}`\n❤️‍🔥 → **طلب الحلو:** {requester}\n❤️‍🔥 → **نوع التشغيل:** `اغنية`",
                     reply_markup=keyboard,
                 )
              except Exception as e:
@@ -250,24 +252,24 @@ async def play(c: Client, m: Message):
         if len(m.command) < 2:
          await m.reply_photo(
                      photo=f"{IMG_5}",
-                    caption="💬**Usage: /play Give a Title Song To Play Music or /vplay for Video Play**"
+                    caption="❤️‍🩹**اكتب .شغل او تشغيل بالرد على ملف صوتي او اعطاء شي للبحث**"
                     ,
                       reply_markup=InlineKeyboardMarkup(
                     [
                         [
-                            InlineKeyboardButton("🗑 Close", callback_data="cls")
+                            InlineKeyboardButton(" مسح", callback_data="cls")
                         ]
                     ]
                 )
             )
         else:
             suhu = await m.reply_text(
-        f"**Downloading**\n\n20% ▓▓▓▓▓▓▓▓▓▓▓▓ 60%"
+        f"**❤️‍🔥 جَاެࢪي اެݪبَحثَ..."
     )
             query = m.text.split(None, 1)[1]
             search = ytsearch(query)
             if search == 0:
-                await suhu.edit("💬 **no results found.**")
+                await suhu.edit("🤼 **لم يتم العثور على نتائج.**")
             else:
                 songname = search[0]
                 title = search[0]
@@ -278,7 +280,7 @@ async def play(c: Client, m: Message):
                 gcname = m.chat.title
                 ctitle = await CHAT_TITLE(gcname)
                 image = await generate_cover(thumbnail, title, userid, ctitle)
-                format = "bestaudio[ext=m4a]"
+                format = "bestaudio"
                 abhi, ytlink = await ytdl(format, url)
                 if abhi == 0:
                     await suhu.edit(f"💬 yt-dl issues detected\n\n» `{ytlink}`")
@@ -291,12 +293,14 @@ async def play(c: Client, m: Message):
                         )
                         await m.reply_photo(
                             photo=image,
-                            caption=f"💡 **Track added to queue »** `{pos}`\n\n🏷 **Name:** [{songname[:22]}]({url}) | `music`\n**⏱ Duration:** `{duration}`\n🎧 **Request by:** {requester}",
+                            caption=f"👍🏻🔥 **أبشر عيني راح اشغلها بعد هاي »** `{pos}`\n\n❤️‍🔥→  **الاسم:** [{songname[:22]}]({url}) | `الاغنية`\n**❤️‍🔥 → المدة:** `{duration}`\n❤️‍🔥 → **طلب من الحب مالي:** {requester}",
                             reply_markup=keyboard,
                         )
                     else:
                         try:
-                            await suhu.edit("🔄 **Trying to Join Vc...**")
+                            await suhu.edit(
+                            f"❤️‍🔥 يَتمَ اެݪتشغِيݪ اެلانِ"
+                        )
                             await call_py.join_group_call(
                                 chat_id,
                                 AudioPiped(
@@ -309,7 +313,7 @@ async def play(c: Client, m: Message):
                             requester = f"[{m.from_user.first_name}](tg://user?id={m.from_user.id})"
                             await m.reply_photo(
                                 photo=image,
-                                caption=f"🏷 **Name:** [{songname[:22]}]({url})\n**⏱ Duration:** `{duration}`\n💡 **Status:** `Playing`\n🎧 **Request by:** {requester}",
+                                caption=f"❤️‍🔥 **→ الاسم :** [{songname[:22]}]({url})\n**❤️‍🔥 → المدة:** `{duration}`\n❤️‍🔥 →** طلب من الگي:** {requester}",
                                 reply_markup=keyboard,
                             )
                         except Exception as ep:
